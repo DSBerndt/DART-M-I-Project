@@ -1,0 +1,74 @@
+from math import *
+from vpython import *
+
+#
+# Needed Constants
+#
+sun_earth_distance = 149597870000
+speed_of_earth = 2*3.1415*sun_earth_distance/(3.15e7)
+#
+# Set up the displays
+#
+scene2 = canvas(title='Solar System',caption='Animated Display', center=vector(0,0,0), background=color.black)
+#
+# Make the radius of each object large enough to see them
+#
+earth.rad = 0
+asteroid =  sphere(pos=vector(sun_earth_distance, sun_earth_distance, 0),radius=4.0e7,color=color.grey)
+earth = sphere(pos=vector(sun_earth_distance,0,0),radius=6.371e8,color=color.cyan)
+sun   = sphere(pos=vector(0,0,0),radius=695.5e7,color=color.yellow)
+#
+G = 6.67e-11
+#
+asteroid.mass = 0
+earth.mass = 5.972e24
+sun.mass   = 1.989e30
+#
+#
+asteroid.mom = moon.mass*vector(0,speed_of_moon, 0)
+earth.mom = earth.mass*vector(0,speed_of_earth,0)
+sun.mom = sun.mass*vector(0,0,0)
+#
+# Create a trail for the earth, and vectors for the force on the earth.
+# scale should be a number that lets is see the force arrow on the plot.
+#
+earth.trail = curve(color=color.magenta)
+earth.trail.append(pos=earth.pos)
+#
+earth.point = arrow(pos=earth.pos,color=earth.color,axis=-norm(earth.pos))
+scale = 3e-16
+#
+# Initial time is 0, and the time step is twelve hours
+#
+time = 0
+dt = 12*3600
+
+#DART launch function
+def DARTLaunch():
+    DART.mass=0
+    DART.mom=DART.mass*vector(0,0.0,0)
+    DART.pos=vector(earth.pos, earth.rad, 0)
+   
+#
+# We will initially run for one year
+#
+while time < 3.15e7:
+    rate(100)
+#
+    time += dt
+#
+#  Forces
+#
+    asteroid
+    earth.force = -norm(earth.pos)*G*earth.mass*sun.mass/mag2(earth.pos)
+#
+#  Update the momentum and position of the Earth
+#
+    earth.momentum += earth.force*dt
+    earth.pos += earth.momentum*dt/earth.mass
+#
+#   Update the Earth's Momentum arrow
+#
+    earth.trail.append(pos=earth.pos)
+    earth.point.pos = earth.pos
+    earth.point.axis = earth.force*scale
