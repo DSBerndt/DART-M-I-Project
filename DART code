@@ -1,106 +1,149 @@
 from math import *
 from vpython import *
 
-# SPECIAL TIME! 4437000.0 <-1.49433e+11, 1.0647e+10, 0>
-# SPECIAL EARTH POSITION! -54697889997.022446,126426020730.27151,0
-#
-# Needed Constants
-#
-G = 6.67e-11
-sun_mass = 1.989e30
-sun_earth_distance = 149597870000
-speed_of_earth = 2*pi*sun_earth_distance/(3.15e7)
-sun_asteroid_distance = 2/3*sun_earth_distance
-speed_of_asteroid = -1.25*sqrt(G*sun_mass/sun_asteroid_distance)
-#
-# Set up the displays
-#
-scene2 = canvas(title='Solar System',caption='Animated Display', center=vector(0,0,0), background=color.black)
-#
-# Make the radius of each object large enough to see them
-#
-earth_radius = 6371000
-asteroid = sphere(pos=vector(0,sun_asteroid_distance,0),radius=4.0e9,color=color.red)
-earth    = sphere(pos=vector(-54697889997.022446,126426020730.27151,0),radius=6.371e9,color=color.cyan)
-sun      = sphere(pos=vector(0,0,0),radius=695.5e7,color=color.yellow)
-earth.rad = earth_radius
-#
-#
-asteroid.mass = 5e9
-earth.mass = 5.972e24
-sun.mass   = sun_mass
-#
-#
-asteroid.mom = asteroid.mass*vector(speed_of_asteroid,0,0)
-#earth.mom = earth.mass*vector(speed_of_earth,0,0)
-earth.mom = earth.mass*vector(-speed_of_earth*126426020730.27151/sun_earth_distance,speed_of_earth*-54697889997.022446/sun_earth_distance,0)
-sun.mom = sun.mass*vector(0,0,0)
-#
-# Create a trail for the earth, and vectors for the force on the earth.
-# scale should be a number that lets is see the force arrow on the plot.
-#
-earth.trail = curve(color=color.magenta)
-earth.trail.append(pos=earth.pos)
-asteroid.trail = curve(color=color.magenta)
-asteroid.trail.append(pos=asteroid.pos)
-#
-earth.point = arrow(pos=earth.pos,color=earth.color,axis=-norm(earth.pos))
-asteroid.point = arrow(pos=asteroid.pos,color=asteroid.color,axis=-norm(asteroid.pos))
-scale = 3e-16
-#
-# Initial time is 0, and the time step is twelve hours
-#
-t = 0
-dt = 1/4*3600
 
-#DART launch function
-def DARTLaunch():
-    DART.mass=0
-    DART.mom=DART.mass*vector(0,0.0,0)
-    DART.pos=vector(earth.pos, earth.rad, 0)
-   
-#
-# We will initially run for one year
-#
-x_f = -1.49433e11+mag(earth.pos)*cos(2*pi*4437000/(3.15e7))
-y_f = 1.0647e10+mag(earth.pos)*sin(2*pi*4437000/(3.15e7))
-print(x_f)
-print(y_f)
-while t < 4440000:
-    rate(200)
-#
-    t += dt
-#
-#  Forces
-#
-    asteroid.force = -(norm(asteroid.pos)*G*asteroid.mass*sun.mass/mag2(asteroid.pos))
-    earth.force = -norm(earth.pos)*G*earth.mass*sun.mass/mag2(earth.pos)
-#
-#  Update the momentum and position of the Earth and asteroid
-#
-    asteroid.mom += asteroid.force*dt
-    asteroid.pos += asteroid.mom*dt/asteroid.mass
-    earth.mom += earth.force*dt
-    earth.pos += earth.mom*dt/earth.mass
-    ast_ear_vector = earth.pos-asteroid.pos
-#
-#   Update the Earth's Momentum arrow
-#
+def test(collisionTime, energy, direction):
+    actual_pi=3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342
+    # SPECIAL TIME! 12,914,100 (Total) 2,635,200 (Month)
+    # SPECIAL EARTH POSITION! -54697889997.022446,126426020730.27151,0
+    #
+    # Needed Constants
+    #
+    G = 6.67e-11
+    sun_mass = 1.989e30
+    sun_earth_distance = 149597870000
+    speed_of_earth = 2*actual_pi*sun_earth_distance/(3.15e7)
+    sun_asteroid_distance = 2*sun_earth_distance
+    speed_of_asteroid = 0
+    print(speed_of_asteroid)
+    #
+    # Set up the displays
+    #
+    scene2 = canvas(title='Solar System',caption='Animated Display', center=vector(0,0,0), background=color.black)
+    #
+    # Make the radius of each object large enough to see them
+    #
+    earth_radius = 6371000
+    asteroid = sphere(pos=vector(0,sun_asteroid_distance,0),radius=4.0e8,color=color.red)
+    earth    = sphere(pos=vector(0,0,0),radius=6.371e8,color=color.cyan)
+    sun      = sphere(pos=vector(0,0,0),radius=695.5e7,color=color.yellow)
+    earth.rad = earth_radius
+    #
+    #
+    asteroid.mass = 5e9
+    earth.mass = 5.972e24
+    sun.mass   = sun_mass
+    #
+    #
+    earth_start_angle = (actual_pi/2)-(2*actual_pi*12914100/3.15e7)
+    earth.pos = vector(sun_earth_distance*cos((earth_start_angle)+(2*actual_pi)/3.15e7),sun_earth_distance*sin((earth_start_angle)+(2*actual_pi)/3.15e7),0)
+    asteroid.mom = asteroid.mass*vector(speed_of_asteroid,0,0)
+    #earth.mom = earth.mass*vector(speed_of_earth,0,0)
+    #earth.mom = earth.mass*vector(-speed_of_earth*126426020730.27151/sun_earth_distance,speed_of_earth*-54697889997.022446/sun_earth_distance,0)
+    sun.mom = sun.mass*vector(0,0,0)
+    #
+    # Create a trail for the earth, and vectors for the force on the earth.
+    # scale should be a number that lets is see the force arrow on the plot.
+    #
+    earth.trail = curve(color=color.magenta)
     earth.trail.append(pos=earth.pos)
-    earth.point.pos = earth.pos
-    earth.point.axis = earth.force*scale
-    
+    asteroid.trail = curve(color=color.magenta)
     asteroid.trail.append(pos=asteroid.pos)
-    asteroid.point.pos = asteroid.pos
-    asteroid.point.axis = asteroid.force*scale
-    
-    ast_ear_dis = mag(ast_ear_vector)
-    
-#    if earth.pos <= 
-    if abs(mag(asteroid.pos)-mag(earth.pos)) <= earth.rad:
-        print(t)
-        print(asteroid.pos)
-    if ast_ear_dis <= earth.rad:
-        print("CRASH!")
+    #
+    earth.point = arrow(pos=earth.pos,color=earth.color,axis=-norm(earth.pos))
+    asteroid.point = arrow(pos=asteroid.pos,color=asteroid.color,axis=-norm(asteroid.pos))
+    scale = 3e-16
+    #
+    # Initial time is 0, and the time step is twelve hours
+    #
+    t = 0
+    dt = 15*60
 
-print(asteroid.pos)
+    #
+    # We will initially run for one year
+    #
+    x_f = -1.49433e11+mag(earth.pos)*cos(2*actual_pi*4437000/(3.15e7))
+    y_f = 1.0647e10+mag(earth.pos)*sin(2*actual_pi*4437000/(3.15e7))
+    print(x_f)
+    print(y_f)
+
+    s='<b>distance</b>'
+    graph(title=s, xtitle='Time', ytitle='Distance',xmin=0,xmax=60*60*24*365*.25, 
+      ymax=.5*sun_earth_distance, ymin=0)
+    #
+    drawit1 = gcurve(color=color.cyan, label='distance')
+
+    DARTmass = 570
+    
+    # ???
+    
+    ast_ear_dis = 200*earth.rad
+    while ast_ear_dis >= earth.rad:
+        rate(1000)
+    #
+        t += dt
+        if t == collisionTime:
+            DARTmom = sqrt(2*energy*DARTmass)*direction
+            asteroid.mom = asteroid.mom + DARTmom
+    #
+    #  Forces
+    #
+        asteroid.force = -(norm(asteroid.pos)*G*asteroid.mass*sun.mass/mag2(asteroid.pos))
+        # earth.force = -norm(earth.pos)*G*earth.mass*sun.mass/mag2(earth.pos)
+    #
+    #  Update the momentum and position of the Earth and asteroid
+    #
+        asteroid.mom += asteroid.force*dt
+        asteroid.pos += asteroid.mom*dt/asteroid.mass
+        # earth.mom += earth.force*dt
+        # earth.pos += earth.mom*dt/earth.mass
+        earth.pos = vector(sun_earth_distance*cos((t)*(2*actual_pi)/3.15e7+earth_start_angle),sun_earth_distance*sin((t)*(2*actual_pi)/3.15e7+earth_start_angle),0)
+        ast_ear_vector = earth.pos-asteroid.pos
+    #
+    #   Update the Earth's Momentum arrow
+    #
+        earth.trail.append(pos=earth.pos)
+        earth.point.pos = earth.pos
+        earth.point.axis = earth.pos*scale
+
+        asteroid.trail.append(pos=asteroid.pos)
+        asteroid.point.pos = asteroid.pos
+        asteroid.point.axis = asteroid.force*scale
+
+        ast_ear_dis = mag(ast_ear_vector)
+
+        if ast_ear_dis <= earth.rad:
+            print("CRASH!")
+            return True
+        if mag(asteroid.pos) <= sun_earth_distance:
+            print("crossed")
+            return False
+
+        drawit1.plot(pos=(t,ast_ear_dis))
+
+    print("time is:")
+    print(t)
+    print("ast pos is:")
+    print(asteroid.pos)
+    print("earth pos is:")
+    print(earth.pos)
+    print("asteroid offset is:")
+    print(ast_ear_dis)
+    
+    
+#test
+Crashed = True
+e = 1e12
+while Crashed:
+    t = 1*2635200
+    print(e)
+    d = vector(0, 1, 0)
+    Crashed = test(t,e,d)
+    e = e*10
+Crashed = True
+e=e/10
+eadd = e/10
+while Crashed:
+    Crashed = test(t,e,d)
+    e += eadd
+print("time is: " + str(t) + ". e is: " + str(e) + ". d is: " + str(d) + ".")
