@@ -5,8 +5,7 @@ from vpython import *
 def test(collisionTime, energy, direction):
     actual_pi=3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342
     # SPECIAL TIME! 12,914,100 (Total) 2,635,200 (Month)
-    # SPECIAL EARTH POSITION! -54697889997.022446,126426020730.27151,0
-    #
+    # 
     # Needed Constants
     #
     G = 6.67e-11
@@ -15,7 +14,6 @@ def test(collisionTime, energy, direction):
     speed_of_earth = 2*actual_pi*sun_earth_distance/(3.15e7)
     sun_asteroid_distance = 2*sun_earth_distance
     speed_of_asteroid = 0
-    print(speed_of_asteroid)
     #
     # Set up the displays
     #
@@ -38,50 +36,37 @@ def test(collisionTime, energy, direction):
     earth_start_angle = (actual_pi/2)-(2*actual_pi*12914100/3.15e7)
     earth.pos = vector(sun_earth_distance*cos((earth_start_angle)+(2*actual_pi)/3.15e7),sun_earth_distance*sin((earth_start_angle)+(2*actual_pi)/3.15e7),0)
     asteroid.mom = asteroid.mass*vector(speed_of_asteroid,0,0)
-    #earth.mom = earth.mass*vector(speed_of_earth,0,0)
-    #earth.mom = earth.mass*vector(-speed_of_earth*126426020730.27151/sun_earth_distance,speed_of_earth*-54697889997.022446/sun_earth_distance,0)
     sun.mom = sun.mass*vector(0,0,0)
     #
     # Create a trail for the earth, and vectors for the force on the earth.
     # scale should be a number that lets is see the force arrow on the plot.
     #
-    earth.trail = curve(color=color.magenta)
+    earth.trail = curve(color=color.white)
     earth.trail.append(pos=earth.pos)
-    asteroid.trail = curve(color=color.magenta)
+    asteroid.trail = curve(color=color.white)
     asteroid.trail.append(pos=asteroid.pos)
     #
     earth.point = arrow(pos=earth.pos,color=earth.color,axis=-norm(earth.pos))
     asteroid.point = arrow(pos=asteroid.pos,color=asteroid.color,axis=-norm(asteroid.pos))
     scale = 3e-16
     #
-    # Initial time is 0, and the time step is twelve hours
+    # Initial time is 0, and the time step is 15 minutes hours
     #
     t = 0
     dt = 15*60
-
-    #
-    # We will initially run for one year
-    #
-    x_f = -1.49433e11+mag(earth.pos)*cos(2*actual_pi*4437000/(3.15e7))
-    y_f = 1.0647e10+mag(earth.pos)*sin(2*actual_pi*4437000/(3.15e7))
-    print(x_f)
-    print(y_f)
-
-    s='<b>distance</b>'
-    graph(title=s, xtitle='Time', ytitle='Distance',xmin=0,xmax=60*60*24*365*.25, 
-      ymax=.5*sun_earth_distance, ymin=0)
-    #
-    drawit1 = gcurve(color=color.cyan, label='distance')
+    
+    #Set the mass of the DART based upon the real world mission page
 
     DARTmass = 570
     
-    # ???
-    
+    # set the ast_ear_dis very high initially so the while loop will run
     ast_ear_dis = 200*earth.rad
     while ast_ear_dis >= earth.rad:
+        
         rate(1000)
     #
         t += dt
+    #  When it is the inputted collision time, change the asteroid's momentum based upon the energy 
         if t == collisionTime:
             DARTmom = sqrt(2*energy*DARTmass)*direction
             asteroid.mom = asteroid.mom + DARTmom
@@ -89,14 +74,12 @@ def test(collisionTime, energy, direction):
     #  Forces
     #
         asteroid.force = -(norm(asteroid.pos)*G*asteroid.mass*sun.mass/mag2(asteroid.pos))
-        # earth.force = -norm(earth.pos)*G*earth.mass*sun.mass/mag2(earth.pos)
     #
     #  Update the momentum and position of the Earth and asteroid
     #
         asteroid.mom += asteroid.force*dt
         asteroid.pos += asteroid.mom*dt/asteroid.mass
-        # earth.mom += earth.force*dt
-        # earth.pos += earth.mom*dt/earth.mass
+    #  Set up the Earth's circular orbit
         earth.pos = vector(sun_earth_distance*cos((t)*(2*actual_pi)/3.15e7+earth_start_angle),sun_earth_distance*sin((t)*(2*actual_pi)/3.15e7+earth_start_angle),0)
         ast_ear_vector = earth.pos-asteroid.pos
     #
@@ -113,37 +96,36 @@ def test(collisionTime, energy, direction):
         ast_ear_dis = mag(ast_ear_vector)
 
         if ast_ear_dis <= earth.rad:
-            print("CRASH!")
+            #print("CRASH!")
             return True
         if mag(asteroid.pos) <= sun_earth_distance:
-            print("crossed")
+            #print("crossed")
             return False
-
-        drawit1.plot(pos=(t,ast_ear_dis))
-
-    print("time is:")
-    print(t)
-    print("ast pos is:")
-    print(asteroid.pos)
-    print("earth pos is:")
-    print(earth.pos)
-    print("asteroid offset is:")
-    print(ast_ear_dis)
     
     
 #test
-Crashed = True
-e = 1e12
-while Crashed:
-    t = 1*2635200
-    print(e)
-    d = vector(0, 1, 0)
-    Crashed = test(t,e,d)
-    e = e*10
-Crashed = True
-e=e/10
-eadd = e/10
-while Crashed:
-    Crashed = test(t,e,d)
-    e += eadd
-print("time is: " + str(t) + ". e is: " + str(e) + ". d is: " + str(d) + ".")
+montht = 2635200 #seconds
+dlist = [vector(0, 1, 0), vector(1, 0, 0), vector(-1, 0, 0)]
+for d in dlist:
+    tlist = [0.375*montht, 0.625*montht, 0.75*montht, 0.875*montht, 1*montht, 1.5*montht, 2*montht, 2.5*montht, 3*montht, 3.5*montht, 4*montht, 4.5*montht]
+    for t in tlist:
+        # This code will give us the lowest energy value that averts a crash rounded up to two sig figs
+        Crashed = True
+        e = 1e13
+        while Crashed:
+            e=e*10
+            Crashed = test(t,e,d)
+        Crashed = True
+        e=e/10
+        eold = e
+        while Crashed:
+            e=e+eold
+            Crashed = test(t,e,d)
+        Crashed = True
+        e=e-eold
+        eadd = eold/10
+        while Crashed:
+            Crashed = test(t,e,d)
+            e += eadd
+        e-=eadd
+        print("time is: " + str(t) + ". e is: " + str(e) + ". d is: " + str(d) + ".")
